@@ -40,9 +40,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: npm install
+      - name: npm ci (install from lockfile)
         working-directory: web
-        run: npm install
+        run: npm ci
       - name: build
         working-directory: web
         run: npm run build
