@@ -228,3 +228,29 @@ func TestParseSystemProfilerAirport(t *testing.T) {
 		}
 	}
 }
+
+func TestParseWdutilInfo(t *testing.T) {
+	out := `WIFI INFORMATION:
+
+     NIC: en0
+     CURRENT NETWORK:
+     SSID: HomeNet
+     BSSID: aa:bb:cc:dd:ee:ff
+     CHANNEL: 149
+     RSSI: -55
+     NOISE: -90
+`
+	net := parseWdutilInfo(out)
+	if net == nil {
+		t.Fatal("net = nil")
+	}
+	if net.SSID != "HomeNet" || !net.Current || net.Channel != "149" || net.Signal != 90 || net.BSSID != "aa:bb:cc:dd:ee:ff" {
+		t.Errorf("net = %+v", net)
+	}
+	if redacted := parseWdutilInfo("     SSID: <redacted>\n"); redacted != nil {
+		t.Errorf("redacted should return nil: %+v", redacted)
+	}
+	if none := parseWdutilInfo("     NOISE: -90\n"); none != nil {
+		t.Errorf("no SSID should return nil: %+v", none)
+	}
+}

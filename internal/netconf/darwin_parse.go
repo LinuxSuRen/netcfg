@@ -412,3 +412,40 @@ func parseSystemProfilerAirport(out string) (current string, nets []WifiNetwork,
 	}
 	return current, nets, redacted
 }
+
+// parseWdutilInfo parses `wdutil info`, Apple's Wi-Fi diagnostics dump that
+// still reports the current SSID under sudo on macOS 15 where other tools
+// are redacted. Returns nil when the SSID is hidden or absent.
+func parseWdutilInfo(out string) *WifiNetwork {
+	var net WifiNetwork
+	haveSSID := false
+	for _, raw := range strings.Split(out, "\n") {
+		key, val, ok := strings.Cut(strings.TrimSpace(raw), ":")
+		if !ok {
+			continue
+		}
+		key, val = strings.TrimSpace(key), strings.TrimSpace(val)
+		switch key {
+		case "SSID":
+			if val != "" && !strings.Contains(val, "redacted") {
+				net.SSID, haveSSID = val, true
+			}
+		case "BSSID":
+			net.BSSID = val
+		case "CHANNEL":
+			if fields := strings.Fields(val); len(fields) > 0 {
+				net.Channel = fields[0]
+			}
+		case "RSSI":
+			if fields := strings.Fields(val); len(fields) > 0 {
+				rssi, _ := strconv.Atoi(fields[0])
+				net.Signal = rssiToPercent(rssi)
+			}
+		}
+	}
+	if !haveSSID {
+		return nil
+	}
+	net.Current = true
+	return &net
+}

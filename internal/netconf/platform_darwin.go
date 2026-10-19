@@ -100,6 +100,13 @@ func (m *darwinManager) Interfaces() ([]Interface, error) {
 			if out, err := m.query.Run("networksetup", "-getairportnetwork", svc); err == nil {
 				iface.SSID = parseDarwinAirportNetwork(out)
 			}
+			// getairportnetwork is redacted without Location access; wdutil
+			// still answers under sudo.
+			if iface.SSID == "" {
+				if net := m.wdutilNetwork(); net != nil {
+					iface.SSID = net.SSID
+				}
+			}
 		}
 		result = append(result, iface)
 	}
@@ -195,6 +202,12 @@ func (m *darwinManager) ScanWifi() ([]WifiNetwork, error) {
 	if len(nets) > 0 {
 		return nets, nil
 	}
+	// Location Services hides every SSID from this process; wdutil (under
+	// sudo) still reports the current network — return that instead of an
+	// outright error so the UI stays usable.
+	if net := m.wdutilNetwork(); net != nil {
+		return []WifiNetwork{*net}, nil
+	}
 	if redacted > 0 {
 		// SSIDs are visible but Location Services hides them from this
 		// process; the terminal app needs Location access.
@@ -203,6 +216,16 @@ func (m *darwinManager) ScanWifi() ([]WifiNetwork, error) {
 	}
 	return nil, newError(CodePermissionDenied,
 		"no Wi-Fi networks could be listed; scanning needs administrator privileges and terminal Location access, restart netcfg with sudo and try again")
+}
+
+// wdutilNetwork reads the current network from wdutil, which reports the
+// SSID under sudo even when Location Services redacts everything else.
+func (m *darwinManager) wdutilNetwork() *WifiNetwork {
+	out, err := m.query.Run("wdutil", "info")
+	if err != nil {
+		return nil
+	}
+	return parseWdutilInfo(out)
 }
 
 func (m *darwinManager) ConnectWifi(iface, ssid, password string) error {
