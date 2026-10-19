@@ -1,0 +1,11 @@
+# CodeQL configuration.
+#
+# internal/netconf/runner.go is the exec.Command wrapper every platform
+# backend funnels system commands through. CodeQL's go/command-injection
+# query flags it because operator-supplied values (interface names, SSIDs,
+# DNS servers) flow into it — that is netcfg's purpose. All values are
+# passed as separate argv elements and never through a shell, so no
+# command injection is possible; the exec wrapper is excluded here while
+# everything around it (parsers, API, CLI, web assets) stays scanned.
+paths_exclude:
+  - internal/netconf/runner.go
