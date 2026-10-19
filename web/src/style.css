@@ -1,0 +1,96 @@
+/* netcfg 管理台全局设计令牌与基础样式 */
+:root {
+  --color-bg-base: #f5f7fa;
+  --color-bg-panel: #ffffff;
+  --color-border-subtle: #e4e7ed;
+  --color-text-primary: #303133;
+  --color-text-secondary: #606266;
+  --color-text-dim: #909399;
+  --color-accent: #409eff;
+  --color-success: #67c23a;
+  --color-warning: #e6a23c;
+  --color-danger: #f56c6c;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+
+  --font-display: 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 管理台骨架：内容区定宽居中，卡片分块 */
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-6) var(--space-8);
+}
+
+.block {
+  margin-top: var(--space-4);
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+.block__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.block__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.block__desc {
+  margin: var(--space-1) 0 0;
+  font-size: 13px;
+  color: var(--color-text-dim);
+}
+
+.block__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* 工具类：数据展示用等宽字体、弱化说明文字 */
+.mono {
+  font-family: var(--font-mono);
+}
+
+.text-dim {
+  color: var(--color-text-dim);
+}
