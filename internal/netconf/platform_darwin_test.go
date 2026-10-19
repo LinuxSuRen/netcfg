@@ -77,13 +77,19 @@ func TestDarwinScanWifiSystemProfilerFallback(t *testing.T) {
 	}
 }
 
-// TestDarwinScanWifiAllRedacted demands the Location Services guidance when
-// every SSID is redacted.
+// TestDarwinScanWifiAllRedacted covers the fully redacted case: netcfg must
+// trigger the Location authorization helper itself (here a recording stub)
+// and return an actionable prompt message.
 func TestDarwinScanWifiAllRedacted(t *testing.T) {
-	m := &darwinManager{query: cmdRunner{
-		"airport":         airportWarning,
-		"system_profiler": "          Other Local Wi-Fi Networks:\n            <redacted>:\n              Security: WPA2 Personal\n",
-	}}
+	triggered := false
+	m := &darwinManager{
+		query: cmdRunner{
+			"airport":         airportWarning,
+			"system_profiler": "          Other Local Wi-Fi Networks:\n            <redacted>:\n              Security: WPA2 Personal\n",
+			"wdutil":          "     SSID: <redacted>\n",
+		},
+		requestLocation: func() bool { triggered = true; return true },
+	}
 	_, err := m.ScanWifi()
 	if err == nil {
 		t.Fatal("expected an error")
@@ -91,7 +97,10 @@ func TestDarwinScanWifiAllRedacted(t *testing.T) {
 	if CodeOf(err) != CodePermissionDenied {
 		t.Errorf("code = %s (%v)", CodeOf(err), err)
 	}
-	if !strings.Contains(err.Error(), "Location") {
-		t.Errorf("message lacks Location guidance: %v", err)
+	if !triggered {
+		t.Error("location authorization helper was not triggered")
+	}
+	if !strings.Contains(err.Error(), "Allow") {
+		t.Errorf("message lacks prompt guidance: %v", err)
 	}
 }

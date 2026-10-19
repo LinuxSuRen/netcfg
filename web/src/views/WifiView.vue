@@ -111,8 +111,8 @@ onMounted(() => {
       v-else-if="scanDenied"
       type="warning"
       :closable="false"
-      title="Wi-Fi 扫描需要更高权限"
-      description="请在系统设置的隐私与安全性中为终端 App 开启定位服务，并以 sudo 重新启动 netcfg serve，然后回到本页再次刷新。"
+      title="Wi-Fi 扫描需要定位授权"
+      description="服务端已尝试弹出系统定位授权窗口，请在弹窗中点击允许后重新扫描；若未出现弹窗，请在系统设置的隐私与安全性中为终端 App 开启定位服务后再试。"
     />
 
     <el-table v-else v-loading="loading" :data="networks" border>

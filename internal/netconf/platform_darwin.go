@@ -15,6 +15,9 @@ import (
 type darwinManager struct {
 	query  Runner
 	mutate Runner
+	// requestLocation is injectable for tests; nil means the real
+	// compile-and-launch helper runs.
+	requestLocation func() bool
 }
 
 // NewManager returns the macOS backend.
@@ -210,12 +213,26 @@ func (m *darwinManager) ScanWifi() ([]WifiNetwork, error) {
 	}
 	if redacted > 0 {
 		// SSIDs are visible but Location Services hides them from this
-		// process; the terminal app needs Location access.
+		// process. netcfg itself triggers the authorization prompt (the
+		// grant is recorded against the terminal app by macOS); once the
+		// user allows it, a re-scan lists everything.
+		if m.triggerLocationAuth() {
+			return nil, newError(CodePermissionDenied,
+				"a Location authorization prompt has been triggered; click Allow in the dialog, then scan again")
+		}
 		return nil, newError(CodePermissionDenied,
 			"Wi-Fi SSIDs are redacted by Location Services; grant the terminal app Location access in System Settings > Privacy & Security > Location Services and try again")
 	}
 	return nil, newError(CodePermissionDenied,
 		"no Wi-Fi networks could be listed; scanning needs administrator privileges and terminal Location access, restart netcfg with sudo and try again")
+}
+
+// triggerLocationAuth runs the injectable test hook or the real helper.
+func (m *darwinManager) triggerLocationAuth() bool {
+	if m.requestLocation != nil {
+		return m.requestLocation()
+	}
+	return requestLocationAuthOnce()
 }
 
 // wdutilNetwork reads the current network from wdutil, which reports the
