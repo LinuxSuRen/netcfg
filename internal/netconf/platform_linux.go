@@ -274,6 +274,9 @@ func (m *linuxManager) ConnectWifi(iface, ssid, password string) error {
 	if !m.hasNM {
 		return newError(CodeUnsupported, "NetworkManager (nmcli) not found; joining Wi-Fi is unavailable")
 	}
+	if !validSSID(ssid) {
+		return newError(CodeInvalidArgument, "invalid SSID %q", ssid)
+	}
 	args := []string{"device", "wifi", "connect", ssid}
 	if password != "" {
 		args = append(args, "password", password)
@@ -342,6 +345,9 @@ func (m *linuxManager) SetProxy(iface string, cfg ProxyConfig) error {
 	}
 	if cfg.HTTPHost == "" || cfg.HTTPPort <= 0 {
 		return newError(CodeInvalidArgument, "manual proxy needs http_host and http_port")
+	}
+	if !validProxyHost(cfg.HTTPHost) || (cfg.HTTPSHost != "" && !validProxyHost(cfg.HTTPSHost)) {
+		return newError(CodeInvalidArgument, "proxy host is not an IP or hostname")
 	}
 	httpsHost, httpsPort := cfg.HTTPSHost, cfg.HTTPSPort
 	if httpsHost == "" || httpsPort <= 0 {

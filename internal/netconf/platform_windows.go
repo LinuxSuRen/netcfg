@@ -171,6 +171,9 @@ func (m *windowsManager) ScanWifi() ([]WifiNetwork, error) {
 }
 
 func (m *windowsManager) ConnectWifi(iface, ssid, password string) error {
+	if !validSSID(ssid) {
+		return newError(CodeInvalidArgument, "invalid SSID %q", ssid)
+	}
 	profile, err := wlanProfileXML(ssid, password)
 	if err != nil {
 		return err
@@ -221,6 +224,9 @@ func (m *windowsManager) SetProxy(iface string, cfg ProxyConfig) error {
 	}
 	if cfg.HTTPHost == "" || cfg.HTTPPort <= 0 {
 		return newError(CodeInvalidArgument, "manual proxy needs http_host and http_port")
+	}
+	if !validProxyHost(cfg.HTTPHost) || (cfg.HTTPSHost != "" && !validProxyHost(cfg.HTTPSHost)) {
+		return newError(CodeInvalidArgument, "proxy host is not an IP or hostname")
 	}
 	httpsHost, httpsPort := cfg.HTTPSHost, cfg.HTTPSPort
 	if httpsHost == "" || httpsPort <= 0 {

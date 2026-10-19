@@ -189,6 +189,9 @@ func (m *darwinManager) ScanWifi() ([]WifiNetwork, error) {
 }
 
 func (m *darwinManager) ConnectWifi(iface, ssid, password string) error {
+	if !validSSID(ssid) {
+		return newError(CodeInvalidArgument, "invalid SSID %q", ssid)
+	}
 	if iface == "" {
 		service, err := m.defaultWifiService()
 		if err != nil {
@@ -260,6 +263,9 @@ func (m *darwinManager) SetProxy(iface string, cfg ProxyConfig) error {
 	}
 	if cfg.HTTPHost == "" || cfg.HTTPPort <= 0 {
 		return newError(CodeInvalidArgument, "manual proxy needs http_host and http_port")
+	}
+	if !validProxyHost(cfg.HTTPHost) || (cfg.HTTPSHost != "" && !validProxyHost(cfg.HTTPSHost)) {
+		return newError(CodeInvalidArgument, "proxy host is not an IP or hostname")
 	}
 	httpsHost, httpsPort := cfg.HTTPSHost, cfg.HTTPSPort
 	if httpsHost == "" || httpsPort <= 0 {
