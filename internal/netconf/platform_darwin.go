@@ -177,23 +177,32 @@ func airportPath() string {
 }
 
 func (m *darwinManager) ScanWifi() ([]WifiNetwork, error) {
-	path := airportPath()
-	if path == "" {
-		return nil, newError(CodeUnsupported, "airport tool not found; scanning is unavailable on this macOS")
+	// The airport CLI is deprecated and on macOS 15+ returns no rows even
+	// for root; try it first for older systems, then fall back to
+	// system_profiler which still lists Wi-Fi networks.
+	if path := airportPath(); path != "" {
+		if out, err := m.query.Run(path, "-s"); err == nil {
+			if nets := parseAirportScan(out); len(nets) > 0 {
+				return nets, nil
+			}
+		}
 	}
-	out, err := m.query.Run(path, "-s")
+	out, err := m.query.Run("system_profiler", "SPAirPortDataType")
 	if err != nil {
 		return nil, err
 	}
-	nets := parseAirportScan(out)
-	if len(nets) == 0 {
-		// airport -s without root prints only its deprecation warning and
-		// never lists networks; report the missing privilege instead of an
-		// empty, silently "working" scan.
-		return nil, newError(CodePermissionDenied,
-			"airport scan returned no networks; Wi-Fi scanning needs administrator privileges, restart netcfg with sudo")
+	_, nets, redacted := parseSystemProfilerAirport(out)
+	if len(nets) > 0 {
+		return nets, nil
 	}
-	return nets, nil
+	if redacted > 0 {
+		// SSIDs are visible but Location Services hides them from this
+		// process; the terminal app needs Location access.
+		return nil, newError(CodePermissionDenied,
+			"Wi-Fi SSIDs are redacted by Location Services; grant the terminal app Location access in System Settings > Privacy & Security > Location Services and try again")
+	}
+	return nil, newError(CodePermissionDenied,
+		"no Wi-Fi networks could be listed; scanning needs administrator privileges and terminal Location access, restart netcfg with sudo and try again")
 }
 
 func (m *darwinManager) ConnectWifi(iface, ssid, password string) error {

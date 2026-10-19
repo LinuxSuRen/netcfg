@@ -3,39 +3,49 @@
 package netconf
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
-// stubRunner returns canned output for any command.
-type stubRunner struct{ out string }
+// cmdRunner returns canned output per command name (basename of argv[0]).
+type cmdRunner map[string]string
 
-func (s stubRunner) Run(string, ...string) (string, error) { return s.out, nil }
-
-// TestDarwinScanWifiNeedsPrivileges pins the macOS behaviour that an
-// unprivileged airport scan (warning only, no rows) surfaces as
-// permission_denied instead of an empty list.
-func TestDarwinScanWifiNeedsPrivileges(t *testing.T) {
-	if airportPath() == "" {
-		t.Skip("airport tool not present")
-	}
-	m := &darwinManager{query: stubRunner{out: "WARNING: The airport command line tool is deprecated and will be removed in a future release."}}
-	_, err := m.ScanWifi()
-	if err == nil {
-		t.Fatal("expected an error for an unprivileged scan")
-	}
-	if CodeOf(err) != CodePermissionDenied {
-		t.Errorf("code = %s (%v), want %s", CodeOf(err), err, CodePermissionDenied)
-	}
+func (c cmdRunner) Run(name string, _ ...string) (string, error) {
+	return c[filepath.Base(name)], nil
 }
 
-func TestDarwinScanWifiParsesRows(t *testing.T) {
-	if airportPath() == "" {
-		t.Skip("airport tool not present")
-	}
-	out := "     SSID BSSID             RSSI CHANNEL HT CC SECURITY\n" +
-		"     Home aa:bb:cc:dd:ee:ff -55  6       Y  US WPA2(PSK/AES)"
-	m := &darwinManager{query: stubRunner{out: out}}
+const airportWarning = "WARNING: The airport command line tool is deprecated and will be removed in a future release."
+
+const sysprofFixture = `Wi-Fi:
+
+      Interfaces:
+        en0:
+          Status: Connected
+          Current Network Information:
+            HomeNet:
+              PHY Mode: 802.11ac
+              Channel: 48 (5GHz, 80MHz)
+              Security: WPA2 Personal
+              Signal / Noise: -55 dBm / -92 dBm
+          Other Local Wi-Fi Networks:
+            Neighbor:
+              PHY Mode: 802.11b/g/n
+              Channel: 1 (2GHz, 40MHz)
+              Security: None
+              Signal / Noise: -43 dBm / -93 dBm
+            <redacted>:
+              Security: WPA3 Personal
+        awdl0:
+          Card Type: AWDL
+`
+
+// TestDarwinScanWifiAirportRows keeps the airport fast path honest.
+func TestDarwinScanWifiAirportRows(t *testing.T) {
+	m := &darwinManager{query: cmdRunner{
+		"airport": "     SSID BSSID             RSSI CHANNEL HT CC SECURITY\n" +
+			"     Home aa:bb:cc:dd:ee:ff -55  6       Y  US WPA2(PSK/AES)",
+	}}
 	nets, err := m.ScanWifi()
 	if err != nil {
 		t.Fatal(err)
@@ -43,7 +53,45 @@ func TestDarwinScanWifiParsesRows(t *testing.T) {
 	if len(nets) != 1 || nets[0].SSID != "Home" || nets[0].Signal != 90 {
 		t.Errorf("nets = %+v", nets)
 	}
-	if !strings.Contains(nets[0].Security, "WPA2") {
-		t.Errorf("security = %q", nets[0].Security)
+}
+
+// TestDarwinScanWifiSystemProfilerFallback covers macOS 15+: airport empty,
+// system_profiler lists networks (a redacted neighbor must be dropped).
+func TestDarwinScanWifiSystemProfilerFallback(t *testing.T) {
+	m := &darwinManager{query: cmdRunner{
+		"airport":         airportWarning,
+		"system_profiler": sysprofFixture,
+	}}
+	nets, err := m.ScanWifi()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(nets) != 2 {
+		t.Fatalf("len = %d: %+v", len(nets), nets)
+	}
+	if !nets[0].Current || nets[0].SSID != "HomeNet" || nets[0].Channel != "48" {
+		t.Errorf("current = %+v", nets[0])
+	}
+	if nets[1].SSID != "Neighbor" || nets[1].Security != "" || nets[1].Signal != 100 {
+		t.Errorf("neighbor = %+v", nets[1])
+	}
+}
+
+// TestDarwinScanWifiAllRedacted demands the Location Services guidance when
+// every SSID is redacted.
+func TestDarwinScanWifiAllRedacted(t *testing.T) {
+	m := &darwinManager{query: cmdRunner{
+		"airport":         airportWarning,
+		"system_profiler": "          Other Local Wi-Fi Networks:\n            <redacted>:\n              Security: WPA2 Personal\n",
+	}}
+	_, err := m.ScanWifi()
+	if err == nil {
+		t.Fatal("expected an error")
+	}
+	if CodeOf(err) != CodePermissionDenied {
+		t.Errorf("code = %s (%v)", CodeOf(err), err)
+	}
+	if !strings.Contains(err.Error(), "Location") {
+		t.Errorf("message lacks Location guidance: %v", err)
 	}
 }

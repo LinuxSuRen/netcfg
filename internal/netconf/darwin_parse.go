@@ -236,7 +236,11 @@ func rssiToPercent(rssi int) int {
 	case rssi >= -50:
 		return 100
 	default:
-		return 2 * (rssi + 100)
+		pct := 2 * (rssi + 100)
+		if pct > 100 {
+			return 100
+		}
+		return pct
 	}
 }
 
@@ -314,4 +318,97 @@ func prefixLenToMask(ones int) (string, bool) {
 	}
 	m := net.CIDRMask(ones, 32)
 	return net.IP(m).String(), true
+}
+
+// spNetworkNameRe matches a bare "Name:" line at network-entry depth
+// (12 spaces in system_profiler output; property lines carry values).
+var spNetworkNameRe = regexp.MustCompile(`^\s{11,}(\S[^:]*):\s*$`)
+
+// parseSystemProfilerAirport parses `system_profiler SPAirPortDataType`,
+// the Wi-Fi listing that works on modern macOS where the deprecated
+// airport tool does not. The listing is nested inside per-interface blocks
+// (e.g. en0), so parsing follows the indentation: network entries sit at
+// depth 12+ under their section markers; anything back at depth <= 10
+// leaves the section. Redacted SSIDs are counted, not returned.
+func parseSystemProfilerAirport(out string) (current string, nets []WifiNetwork, redacted int) {
+	section := "" // "" | current | other
+	var name string
+	var channel, security string
+	var rssi int
+	have := false
+	flush := func() {
+		if !have {
+			return
+		}
+		have = false
+		if strings.Contains(name, "redacted") {
+			redacted++
+			return
+		}
+		sec := security
+		if strings.EqualFold(sec, "None") {
+			sec = ""
+		}
+		nets = append(nets, WifiNetwork{
+			SSID: name, Channel: channel, Security: sec,
+			Signal: rssiToPercent(rssi), Current: section == "current",
+		})
+	}
+	for _, raw := range strings.Split(out, "\n") {
+		line := strings.TrimRight(raw, " \r")
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		if strings.Contains(line, "Current Network Information") {
+			flush()
+			section = "current"
+			continue
+		}
+		if strings.Contains(line, "Wi-Fi Networks:") {
+			flush()
+			section = "other"
+			continue
+		}
+		if section == "" {
+			continue
+		}
+		depth := len(line) - len(strings.TrimLeft(line, " "))
+		if depth <= 10 {
+			// Left the network listing (next interface block or sibling
+			// section such as "Interfaces:" / "awdl0:").
+			flush()
+			section = ""
+			continue
+		}
+		if m := spNetworkNameRe.FindStringSubmatch(line); m != nil {
+			flush()
+			name, channel, security, rssi = strings.TrimSpace(m[1]), "", "", -100
+			have = true
+			continue
+		}
+		key, val, ok := strings.Cut(strings.TrimSpace(line), ":")
+		if !ok || !have {
+			continue
+		}
+		key, val = strings.TrimSpace(key), strings.TrimSpace(val)
+		switch key {
+		case "Channel":
+			if fields := strings.Fields(val); len(fields) > 0 {
+				channel = fields[0]
+			}
+		case "Security":
+			security = val
+		case "Signal / Noise":
+			if fields := strings.Fields(val); len(fields) > 0 {
+				rssi, _ = strconv.Atoi(fields[0])
+			}
+		}
+	}
+	flush()
+	for i := range nets {
+		if nets[i].Current {
+			current = nets[i].SSID
+		}
+	}
+	return current, nets, redacted
 }

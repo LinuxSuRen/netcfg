@@ -179,3 +179,52 @@ func TestMaskPrefixConversions(t *testing.T) {
 		t.Errorf("mask = %q ok=%v", mask, ok)
 	}
 }
+
+func TestParseSystemProfilerAirport(t *testing.T) {
+	out := `Wi-Fi:
+
+      Software Versions:
+          CoreWLAN: 16.0 (1657)
+      Interfaces:
+        en0:
+          Card Type: Wi-Fi  (0x14E4, 0x7BF)
+          Status: Connected
+          Current Network Information:
+            HomeNet:
+              PHY Mode: 802.11ac
+              Channel: 48 (5GHz, 80MHz)
+              Security: WPA2 Personal
+              Signal / Noise: -55 dBm / -92 dBm
+          Other Local Wi-Fi Networks:
+            Neighbor 2.4G:
+              PHY Mode: 802.11b/g/n
+              Channel: 1 (2GHz, 40MHz)
+              Security: None
+              Signal / Noise: -43 dBm / -93 dBm
+            <redacted>:
+              Security: WPA3 Personal
+        awdl0:
+          Card Type: AWDL
+`
+	current, nets, redacted := parseSystemProfilerAirport(out)
+	if current != "HomeNet" {
+		t.Errorf("current = %q", current)
+	}
+	if redacted != 1 {
+		t.Errorf("redacted = %d", redacted)
+	}
+	if len(nets) != 2 {
+		t.Fatalf("len = %d: %+v", len(nets), nets)
+	}
+	if !nets[0].Current || nets[0].SSID != "HomeNet" || nets[0].Channel != "48" || nets[0].Signal != 90 {
+		t.Errorf("current net = %+v", nets[0])
+	}
+	if nets[1].Current || nets[1].SSID != "Neighbor 2.4G" || nets[1].Security != "" || nets[1].Signal != 100 {
+		t.Errorf("neighbor = %+v", nets[1])
+	}
+	for _, n := range nets {
+		if n.SSID == "awdl0" || n.SSID == "en0" {
+			t.Errorf("interface name leaked as SSID: %+v", n)
+		}
+	}
+}
