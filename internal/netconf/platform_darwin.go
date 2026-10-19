@@ -185,7 +185,15 @@ func (m *darwinManager) ScanWifi() ([]WifiNetwork, error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseAirportScan(out), nil
+	nets := parseAirportScan(out)
+	if len(nets) == 0 {
+		// airport -s without root prints only its deprecation warning and
+		// never lists networks; report the missing privilege instead of an
+		// empty, silently "working" scan.
+		return nil, newError(CodePermissionDenied,
+			"airport scan returned no networks; Wi-Fi scanning needs administrator privileges, restart netcfg with sudo")
+	}
+	return nets, nil
 }
 
 func (m *darwinManager) ConnectWifi(iface, ssid, password string) error {

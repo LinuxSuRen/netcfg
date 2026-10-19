@@ -11,6 +11,7 @@ const props = defineProps({
 const networks = ref([])
 const loading = ref(false)
 const interfaces = ref([])
+const scanDenied = ref(false)
 
 const dialogVisible = ref(false)
 const target = ref(null)
@@ -33,8 +34,14 @@ async function scan() {
   try {
     const data = await scanWifi()
     networks.value = Array.isArray(data) ? data : []
+    scanDenied.value = false
   } catch (e) {
-    ElMessage.error(e.message)
+    if (e.code === 'permission_denied') {
+      scanDenied.value = true
+    } else {
+      scanDenied.value = false
+      ElMessage.error(e.message)
+    }
   } finally {
     loading.value = false
   }
@@ -98,6 +105,14 @@ onMounted(() => {
       type="warning"
       :closable="false"
       title="当前系统不支持 Wi-Fi 扫描"
+    />
+
+    <el-alert
+      v-else-if="scanDenied"
+      type="warning"
+      :closable="false"
+      title="Wi-Fi 扫描需要管理员权限"
+      description="请停止当前服务，在终端用 sudo 重新启动 netcfg serve，然后回到本页再次刷新。"
     />
 
     <el-table v-else v-loading="loading" :data="networks" border>
