@@ -1,0 +1,19 @@
+# binaries
+bin/
+netcfg
+netcfg.exe
+
+# go
+*.test
+*.out
+coverage.txt
+
+# web
+web/node_modules/
+web/dist/*
+!web/dist/.gitkeep
+
+# editors / OS
+.DS_Store
+.idea/
+.vscode/
