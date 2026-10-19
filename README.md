@@ -1,8 +1,18 @@
 # netcfg
 
-One single binary to **view and change this machine's network configuration** — interfaces, static IP / DHCP, DNS, Wi-Fi, the hosts file and the desktop proxy — on **macOS, Windows and Linux**, from the terminal (CLI) **and** from a small built-in Web UI.
+<p align="center">
+  <img src="docs/logo.svg" width="128" alt="netcfg logo" />
+</p>
 
-Written in Go, with a Vue 3 UI embedded in the same binary.
+One single binary to **view and change this machine's network configuration** — interfaces, static IP / DHCP, DNS, Wi-Fi, the hosts file and the desktop proxy — on **macOS, Windows and Linux**, from the terminal (CLI) **and** from a small built-in Web UI. Written in Go, with a Vue 3 UI embedded in the same binary.
+
+<p align="center">
+  <a href="https://github.com/LinuxSuRen/netcfg">Repository</a> ·
+  <a href="https://github.com/LinuxSuRen/netcfg/releases">Releases</a> ·
+  <a href="https://github.com/LinuxSuRen/netcfg/issues">Issues</a> ·
+  <a href="https://github.com/LinuxSuRen/netcfg/pulls">Pull Requests</a> ·
+  <a href="LICENSE">License</a>
+</p>
 
 ## Why
 

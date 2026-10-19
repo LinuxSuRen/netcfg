@@ -35,7 +35,15 @@ onMounted(async () => {
   <div class="app">
     <header class="app-header">
       <div class="app-header__inner">
-        <span class="app-header__brand">netcfg</span>
+        <a
+          class="app-header__brand"
+          href="https://github.com/LinuxSuRen/netcfg"
+          target="_blank"
+          rel="noopener"
+        >
+          <img class="app-header__logo" src="/logo.svg" alt="netcfg logo" />
+          netcfg
+        </a>
         <span v-if="version" class="app-header__meta">
           版本 {{ version.version }} · {{ version.os }}/{{ version.arch }}<template v-if="shortCommit"> · {{ shortCommit }}</template>
         </span>
@@ -77,10 +85,24 @@ onMounted(async () => {
 }
 
 .app-header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: 18px;
   font-weight: 600;
   color: var(--color-text-primary);
   font-family: var(--font-display);
+  text-decoration: none;
+}
+
+.app-header__brand:hover {
+  opacity: 0.85;
+}
+
+.app-header__logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
 }
 
 .app-header__meta {
