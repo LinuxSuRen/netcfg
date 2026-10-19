@@ -40,8 +40,13 @@ const sysprofFixture = `Wi-Fi:
           Card Type: AWDL
 `
 
-// TestDarwinScanWifiAirportRows keeps the airport fast path honest.
+// TestDarwinScanWifiAirportRows keeps the airport fast path honest. The
+// binary was removed in macOS 26, so guard instead of assuming the host
+// still ships it.
 func TestDarwinScanWifiAirportRows(t *testing.T) {
+	if airportPath() == "" {
+		t.Skip("airport tool not present on this macOS")
+	}
 	m := &darwinManager{query: cmdRunner{
 		"airport": "     SSID BSSID             RSSI CHANNEL HT CC SECURITY\n" +
 			"     Home aa:bb:cc:dd:ee:ff -55  6       Y  US WPA2(PSK/AES)",
@@ -55,8 +60,9 @@ func TestDarwinScanWifiAirportRows(t *testing.T) {
 	}
 }
 
-// TestDarwinScanWifiSystemProfilerFallback covers macOS 15+: airport empty,
-// system_profiler lists networks (a redacted neighbor must be dropped).
+// TestDarwinScanWifiSystemProfilerFallback covers macOS 15+: airport empty
+// or missing, system_profiler lists networks (a redacted neighbor must be
+// dropped).
 func TestDarwinScanWifiSystemProfilerFallback(t *testing.T) {
 	m := &darwinManager{query: cmdRunner{
 		"airport":         airportWarning,
