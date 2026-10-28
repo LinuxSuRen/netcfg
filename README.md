@@ -32,6 +32,7 @@ Every OS buries the same handful of settings behind different tools: `networkset
 | Static IP / DHCP | `networksetup -setmanual/-setdhcp` | `netsh interface ipv4` | `nmcli connection modify` |
 | DNS servers | `networksetup -setdnsservers` | `netsh interface ipv4 set dnsservers` | `nmcli connection modify` |
 | Wi-Fi scan / join | `airport -s` / `networksetup -setairportnetwork` | `netsh wlan show networks` / WLAN profile | `nmcli device wifi` |
+| Wi-Fi hotspot (AP) | — | — | `nmcli connection` (AP mode + shared) |
 | Hosts file | `/etc/hosts` | `%SystemRoot%\System32\drivers\etc\hosts` | `/etc/hosts` |
 | Desktop proxy | per network service | WinINET registry (per user) | GNOME `gsettings` |
 
@@ -82,6 +83,24 @@ Wi-Fi:
 netcfg wifi list
 netcfg wifi connect "HomeNet"              # password prompt (input hidden)
 ```
+
+Wi-Fi hotspot (AP mode, Linux via NetworkManager; macOS/Windows report
+`unsupported` for now):
+
+```bash
+sudo netcfg wifi ap start "robot-ap" --password 'robot123456'   # WPA2, 2.4 GHz
+sudo netcfg wifi ap start "robot-ap" --password 'robot123456' --band a --channel 36
+sudo netcfg wifi ap start "robot-ap" --password ''              # open network
+sudo netcfg wifi ap start "robot-ap" --password 'robot123456' --dry-run   # preview
+sudo netcfg wifi ap stop
+```
+
+The hotspot shares this machine's connectivity (clients get DHCP from
+NetworkManager's shared mode, gateway `10.42.0.1` unless `--gateway` says
+otherwise). Starting replaces a leftover `netcfg-ap` connection of the same
+name, so consecutive starts converge; stop removes the profile again.
+Passwords on the command line are visible to other local users via `/proc` —
+prefer the prompt (omit `--password`) or an empty value for an open network.
 
 Hosts file — netcfg only edits a marked section, every other line is preserved byte-for-byte:
 

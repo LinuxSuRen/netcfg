@@ -21,6 +21,8 @@ type fakeManager struct {
 	lastIP          map[string]netconf.IPConfig
 	lastDNS         map[string]netconf.DNSConfig
 	lastWifi        string
+	lastAP          string
+	stoppedAP       string
 	lastProxy       netconf.ProxyConfig
 }
 
@@ -53,6 +55,22 @@ func (f *fakeManager) ScanWifi() ([]netconf.WifiNetwork, error) {
 }
 func (f *fakeManager) ConnectWifi(iface, ssid, password string) error {
 	f.lastWifi = ssid + "/" + password + "@" + iface
+	return nil
+}
+
+func (f *fakeManager) StartWifiAP(iface, ssid, password string, opts netconf.WifiAPOptions) error {
+	if ssid == "-bad" {
+		return &netconf.Error{Code: netconf.CodeInvalidArgument, Err: errStr("bad ssid")}
+	}
+	f.lastAP = ssid + "/" + password + "@" + iface + "/" + opts.ConnName
+	return nil
+}
+
+func (f *fakeManager) StopWifiAP(opts netconf.WifiAPOptions) error {
+	if opts.ConnName == "missing-ap" {
+		return &netconf.Error{Code: netconf.CodeNotFound, Err: errStr("no such hotspot")}
+	}
+	f.stoppedAP = opts.ConnName
 	return nil
 }
 func (f *fakeManager) Proxy(iface string) (netconf.ProxyConfig, error) { return f.proxy, nil }
@@ -170,6 +188,33 @@ func TestWifiEndpoints(t *testing.T) {
 	rec, _ = doJSON(t, srv, http.MethodPost, "/api/wifi/connect", `{"ssid":""}`)
 	if rec.Code != http.StatusBadRequest {
 		t.Errorf("empty ssid code = %d", rec.Code)
+	}
+}
+
+func TestWifiAPEndpoints(t *testing.T) {
+	srv, mgr, _ := newTestServer(t)
+	rec, _ := doJSON(t, srv, http.MethodPost, "/api/wifi/ap",
+		`{"interface":"wlan0","ssid":"test-ap","password":"secret123","band":"bg","channel":6}`)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ap start code = %d", rec.Code)
+	}
+	if want := "test-ap/secret123@wlan0/"; mgr.lastAP != want {
+		t.Errorf("lastAP = %q want %q", mgr.lastAP, want)
+	}
+	rec, _ = doJSON(t, srv, http.MethodPost, "/api/wifi/ap", `{"ssid":""}`)
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("empty ssid code = %d", rec.Code)
+	}
+	rec, _ = doJSON(t, srv, http.MethodDelete, "/api/wifi/ap", "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ap stop code = %d", rec.Code)
+	}
+	if mgr.stoppedAP != "" {
+		t.Errorf("stoppedAP = %q want empty default", mgr.stoppedAP)
+	}
+	rec, _ = doJSON(t, srv, http.MethodDelete, "/api/wifi/ap?name=missing-ap", "")
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("missing ap code = %d", rec.Code)
 	}
 }
 
