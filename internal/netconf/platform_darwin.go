@@ -267,6 +267,22 @@ func (m *darwinManager) ConnectWifi(iface, ssid, password string) error {
 	return err
 }
 
+// StartWifiAP is not implemented on macOS: Internet Sharing has no stable
+// CLI to drive (it is configured through the Sharing preference pane or
+// private frameworks). The capability reports false accordingly.
+func (m *darwinManager) StartWifiAP(iface, ssid, password string, opts WifiAPOptions) error {
+	_ = iface
+	_ = ssid
+	_ = password
+	_ = opts
+	return newError(CodeUnsupported, "starting a hotspot is not supported on macOS; use System Settings > Sharing > Internet Sharing")
+}
+
+func (m *darwinManager) StopWifiAP(opts WifiAPOptions) error {
+	_ = opts
+	return newError(CodeUnsupported, "stopping a hotspot is not supported on macOS; use System Settings > Sharing > Internet Sharing")
+}
+
 func (m *darwinManager) defaultWifiService() (string, error) {
 	ifaces, err := m.Interfaces()
 	if err != nil {

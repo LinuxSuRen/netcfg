@@ -45,6 +45,8 @@ func (s *Server) routes(webFS fs.FS) {
 	m.HandleFunc("POST /api/interfaces/{name}/dns", s.handleSetDNS)
 	m.HandleFunc("GET /api/wifi", s.handleWifiScan)
 	m.HandleFunc("POST /api/wifi/connect", s.handleWifiConnect)
+	m.HandleFunc("POST /api/wifi/ap", s.handleWifiAPStart)
+	m.HandleFunc("DELETE /api/wifi/ap", s.handleWifiAPStop)
 	m.HandleFunc("GET /api/hosts", s.handleHostsList)
 	m.HandleFunc("POST /api/hosts", s.handleHostsAdd)
 	m.HandleFunc("DELETE /api/hosts/{hostname}", s.handleHostsRemove)
@@ -145,6 +147,47 @@ func (s *Server) handleWifiConnect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := s.mgr.ConnectWifi(body.Interface, body.SSID, body.Password); err != nil {
+		writeError(w, err)
+		return
+	}
+	writeData(w, http.StatusOK, map[string]bool{"ok": true})
+}
+
+func (s *Server) handleWifiAPStart(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Interface string `json:"interface"`
+		SSID      string `json:"ssid"`
+		Password  string `json:"password"`
+		Channel   int    `json:"channel"`
+		Band      string `json:"band"`
+		Gateway   string `json:"gateway"`
+		ConnName  string `json:"conn_name"`
+	}
+	if err := decodeBody(r, &body); err != nil {
+		writeError(w, err)
+		return
+	}
+	if body.SSID == "" {
+		writeError(w, &netconf.Error{Code: netconf.CodeInvalidArgument,
+			Err: errors.New("ssid is required")})
+		return
+	}
+	opts := netconf.WifiAPOptions{
+		Channel:  body.Channel,
+		Band:     body.Band,
+		Gateway:  body.Gateway,
+		ConnName: body.ConnName,
+	}
+	if err := s.mgr.StartWifiAP(body.Interface, body.SSID, body.Password, opts); err != nil {
+		writeError(w, err)
+		return
+	}
+	writeData(w, http.StatusOK, map[string]bool{"ok": true})
+}
+
+func (s *Server) handleWifiAPStop(w http.ResponseWriter, r *http.Request) {
+	conn := r.URL.Query().Get("name")
+	if err := s.mgr.StopWifiAP(netconf.WifiAPOptions{ConnName: conn}); err != nil {
 		writeError(w, err)
 		return
 	}

@@ -56,6 +56,15 @@ type WifiNetwork struct {
 	Current  bool   `json:"current,omitempty"`
 }
 
+// WifiAPOptions tunes a hotspot started via StartWifiAP. Zero values keep
+// platform defaults.
+type WifiAPOptions struct {
+	Channel  int    // 0 = auto-select
+	Band     string // "bg" (2.4 GHz, default) | "a" (5 GHz)
+	Gateway  string // hotspot LAN gateway IPv4; "" = platform default
+	ConnName string // connection/profile name; "" = "netcfg-ap"
+}
+
 // ProxyConfig is the effective system (desktop) proxy: either none or an
 // explicit HTTP/HTTPS proxy with a bypass list.
 type ProxyConfig struct {
@@ -74,6 +83,7 @@ type Capabilities struct {
 	SetDNS   bool `json:"set_dns"`
 	WifiScan bool `json:"wifi_scan"`
 	WifiJoin bool `json:"wifi_join"`
+	WifiAP   bool `json:"wifi_ap"`
 	Proxy    bool `json:"proxy"`
 	Hosts    bool `json:"hosts"`
 }

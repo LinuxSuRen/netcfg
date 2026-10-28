@@ -38,3 +38,34 @@ func validProxyHost(s string) bool {
 	}
 	return validHostname(s)
 }
+
+// validateWifiAPArgs checks hotspot parameters shared by every platform:
+// SSID sanity as for joining, the 8..63 bytes WPA2 requires for the PSK,
+// band/channel pairing and an optional gateway IPv4.
+func validateWifiAPArgs(ssid, password string, opts WifiAPOptions) error {
+	if !validSSID(ssid) {
+		return newError(CodeInvalidArgument, "invalid SSID %q", ssid)
+	}
+	if password != "" && (len(password) < 8 || len(password) > 63) {
+		return newError(CodeInvalidArgument,
+			"WPA2 passphrase must be 8..63 bytes (got %d); use an empty password for an open network", len(password))
+	}
+	switch opts.Band {
+	case "", "bg", "a":
+	default:
+		return newError(CodeInvalidArgument, "band must be \"bg\" or \"a\" (got %q)", opts.Band)
+	}
+	if opts.Channel < 0 || opts.Channel > 196 {
+		return newError(CodeInvalidArgument, "channel %d out of range", opts.Channel)
+	}
+	if opts.Channel != 0 && opts.Band == "bg" && opts.Channel > 14 {
+		return newError(CodeInvalidArgument, "2.4 GHz band supports channels 1..14 (got %d)", opts.Channel)
+	}
+	if opts.Channel != 0 && opts.Band == "a" && opts.Channel < 32 {
+		return newError(CodeInvalidArgument, "5 GHz band starts at channel 32 (got %d)", opts.Channel)
+	}
+	if opts.Gateway != "" && net.ParseIP(opts.Gateway) == nil {
+		return newError(CodeInvalidArgument, "%q is not an IP address", opts.Gateway)
+	}
+	return nil
+}

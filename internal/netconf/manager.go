@@ -51,6 +51,13 @@ type Manager interface {
 	ScanWifi() ([]WifiNetwork, error)
 	// ConnectWifi joins ssid using password; iface is Interface.Name or "".
 	ConnectWifi(iface, ssid, password string) error
+	// StartWifiAP brings up a Wi-Fi hotspot (AP mode): ssid is the network
+	// name, password the WPA2 pre-shared key (empty for an open network);
+	// iface is Interface.Name or "" for the platform's Wi-Fi interface.
+	StartWifiAP(iface, ssid, password string, opts WifiAPOptions) error
+	// StopWifiAP tears down the hotspot previously started by StartWifiAP;
+	// opts.ConnName must match the one used to start it.
+	StopWifiAP(opts WifiAPOptions) error
 	// Proxy reads the current system proxy (iface may narrow the platform's
 	// scope, e.g. a macOS network service).
 	Proxy(iface string) (ProxyConfig, error)

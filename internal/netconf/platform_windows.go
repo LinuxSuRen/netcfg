@@ -201,6 +201,22 @@ func (m *windowsManager) ConnectWifi(iface, ssid, password string) error {
 	return err
 }
 
+// StartWifiAP is not implemented on Windows: the Mobile Hotspot feature is
+// driven through WinRT (NetworkOperatorTetheringManager), not netsh, and is
+// out of scope for now. The capability reports false accordingly.
+func (m *windowsManager) StartWifiAP(iface, ssid, password string, opts WifiAPOptions) error {
+	_ = iface
+	_ = ssid
+	_ = password
+	_ = opts
+	return newError(CodeUnsupported, "starting a hotspot is not supported on Windows yet; use Settings > Network & internet > Mobile hotspot")
+}
+
+func (m *windowsManager) StopWifiAP(opts WifiAPOptions) error {
+	_ = opts
+	return newError(CodeUnsupported, "stopping a hotspot is not supported on Windows yet; use Settings > Network & internet > Mobile hotspot")
+}
+
 const proxyRegPath = `HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings`
 
 func (m *windowsManager) Proxy(iface string) (ProxyConfig, error) {

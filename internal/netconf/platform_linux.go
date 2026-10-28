@@ -45,6 +45,7 @@ func (m *linuxManager) Capabilities() Capabilities {
 		SetDNS:   m.hasNM,
 		WifiScan: m.hasNM,
 		WifiJoin: m.hasNM,
+		WifiAP:   m.hasNM,
 		Proxy:    hasGsettings(),
 		Hosts:    true,
 	}
@@ -286,6 +287,104 @@ func (m *linuxManager) ConnectWifi(iface, ssid, password string) error {
 	}
 	_, err := m.mutate.Run("nmcli", args...)
 	return err
+}
+
+// apConnectionName is the NetworkManager connection netcfg owns for hotspots.
+func apConnectionName(opts WifiAPOptions) string {
+	if opts.ConnName != "" {
+		return opts.ConnName
+	}
+	return "netcfg-ap"
+}
+
+// defaultWifiDevice picks the first wifi interface for hotspot bring-up.
+func (m *linuxManager) defaultWifiDevice() (string, error) {
+	ifaces, err := m.Interfaces()
+	if err != nil {
+		return "", err
+	}
+	for _, iface := range ifaces {
+		if iface.Type == "wifi" {
+			return iface.Name, nil
+		}
+	}
+	return "", newError(CodeNotFound, "no Wi-Fi interface found; plug in an adapter and check `netcfg list`")
+}
+
+func (m *linuxManager) StartWifiAP(iface, ssid, password string, opts WifiAPOptions) error {
+	if !m.hasNM {
+		return newError(CodeUnsupported, "NetworkManager (nmcli) not found; starting a hotspot is unavailable")
+	}
+	if err := validateWifiAPArgs(ssid, password, opts); err != nil {
+		return err
+	}
+	if iface == "" {
+		var err error
+		if iface, err = m.defaultWifiDevice(); err != nil {
+			return err
+		}
+	} else if err := m.requireDevice(iface); err != nil {
+		return err
+	}
+	conn := apConnectionName(opts)
+	// Replace a leftover hotspot profile of the same name so consecutive
+	// starts converge instead of failing on the existing connection.
+	if m.connectionExists(conn) {
+		if _, err := m.mutate.Run("nmcli", "connection", "delete", conn); err != nil {
+			return err
+		}
+	}
+	args := []string{"connection", "add", "type", "wifi", "ifname", iface,
+		"con-name", conn, "ssid", ssid,
+		"802-11-wireless.mode", "ap",
+		"802-11-wireless.band", "bg"}
+	if opts.Band == "a" {
+		args[len(args)-1] = "a"
+	}
+	if opts.Channel != 0 {
+		args = append(args, "802-11-wireless.channel", itoa(opts.Channel))
+	}
+	if password != "" {
+		args = append(args,
+			"802-11-wireless-security.key-mgmt", "wpa-psk",
+			"wifi-sec.psk", password)
+	}
+	args = append(args, "ipv4.method", "shared")
+	if opts.Gateway != "" {
+		args = append(args, "ipv4.addresses", opts.Gateway+"/24")
+	}
+	if _, err := m.mutate.Run("nmcli", args...); err != nil {
+		return err
+	}
+	return errNil(m.mutate.Run("nmcli", "connection", "up", conn))
+}
+
+// connectionExists reports whether NetworkManager knows a connection name.
+func (m *linuxManager) connectionExists(conn string) bool {
+	out, err := m.query.Run("nmcli", "-t", "-f", "NAME", "connection", "show")
+	if err != nil {
+		return false
+	}
+	for _, name := range strings.Split(out, "\n") {
+		if strings.TrimSpace(name) == conn {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *linuxManager) StopWifiAP(opts WifiAPOptions) error {
+	if !m.hasNM {
+		return newError(CodeUnsupported, "NetworkManager (nmcli) not found; stopping a hotspot is unavailable")
+	}
+	conn := apConnectionName(opts)
+	if !m.connectionExists(conn) {
+		return newError(CodeNotFound, "no hotspot connection %q (was it started with netcfg?)", conn)
+	}
+	if _, err := m.mutate.Run("nmcli", "connection", "down", conn); err != nil {
+		return err
+	}
+	return errNil(m.mutate.Run("nmcli", "connection", "delete", conn))
 }
 
 const gsettingsProxyBase = "org.gnome.system.proxy"
