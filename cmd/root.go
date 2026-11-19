@@ -1,4 +1,4 @@
-// Package cmd wires the cobra CLI of netcfg.
+// Package cmd wires the cobra CLI of net-tool.
 package cmd
 
 import (
@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/LinuxSuRen/netcfg/internal/netconf"
+	"github.com/LinuxSuRen/net-tool/internal/netconf"
 )
 
 // Version metadata, set via -ldflags.
@@ -22,15 +22,15 @@ var (
 var outputJSON bool
 
 var rootCmd = &cobra.Command{
-	Use:   "netcfg",
+	Use:   "net-tool",
 	Short: "View and change local network configuration (macOS / Windows / Linux)",
-	Long: `netcfg views and changes this machine's network configuration:
+	Long: `net-tool views and changes this machine's network configuration:
 interfaces, IP/DHCP, DNS, Wi-Fi, the hosts file and the desktop proxy.
 
 It works on macOS (networksetup), Windows (netsh / PowerShell) and Linux
 (NetworkManager; read-only fallback via iproute2). Mutating commands need
 administrator privileges and support --dry-run to preview the exact system
-commands. The same functionality is available over HTTP with ` + "`netcfg serve`" + `.`,
+commands. The same functionality is available over HTTP with ` + "`net-tool serve`" + `.`,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 }
@@ -55,7 +55,7 @@ func SetVersion(v, c string) {
 
 func applyVersion() {
 	rootCmd.Version = version
-	rootCmd.SetVersionTemplate("netcfg {{.Version}} (commit " + commit + ")\n")
+	rootCmd.SetVersionTemplate("net-tool {{.Version}} (commit " + commit + ")\n")
 }
 
 // newManager builds the platform manager, dry-run when requested.

@@ -83,7 +83,7 @@ func TestDarwinScanWifiSystemProfilerFallback(t *testing.T) {
 	}
 }
 
-// TestDarwinScanWifiAllRedacted covers the fully redacted case: netcfg must
+// TestDarwinScanWifiAllRedacted covers the fully redacted case: net-tool must
 // trigger the Location authorization helper itself (here a recording stub)
 // and return an actionable prompt message.
 func TestDarwinScanWifiAllRedacted(t *testing.T) {

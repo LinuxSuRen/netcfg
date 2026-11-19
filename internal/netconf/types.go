@@ -62,7 +62,7 @@ type WifiAPOptions struct {
 	Channel  int    // 0 = auto-select
 	Band     string // "bg" (2.4 GHz, default) | "a" (5 GHz)
 	Gateway  string // hotspot LAN gateway IPv4; "" = platform default
-	ConnName string // connection/profile name; "" = "netcfg-ap"
+	ConnName string // connection/profile name; "" = "net-tool-ap"
 }
 
 // ProxyConfig is the effective system (desktop) proxy: either none or an
@@ -89,7 +89,7 @@ type Capabilities struct {
 }
 
 // HostEntry is one line of the hosts file. A line may map several hostnames
-// to one address; managed entries are the ones netcfg owns (see hosts.go).
+// to one address; managed entries are the ones net-tool owns (see hosts.go).
 type HostEntry struct {
 	IP        string   `json:"ip"`
 	Hostnames []string `json:"hostnames"`

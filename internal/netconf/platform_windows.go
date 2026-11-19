@@ -178,7 +178,7 @@ func (m *windowsManager) ConnectWifi(iface, ssid, password string) error {
 	if err != nil {
 		return err
 	}
-	tmp, err := os.CreateTemp("", "netcfg-wlan-*.xml")
+	tmp, err := os.CreateTemp("", "net-tool-wlan-*.xml")
 	if err != nil {
 		return newError(CodeCommandFailed, "create temp profile: %v", err)
 	}

@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/LinuxSuRen/netcfg/internal/netconf"
+	"github.com/LinuxSuRen/net-tool/internal/netconf"
 )
 
 var hostsListCmd = &cobra.Command{
@@ -27,7 +27,7 @@ var hostsListCmd = &cobra.Command{
 		for _, e := range entries {
 			source := "system"
 			if e.Managed {
-				source = "netcfg"
+				source = "net-tool"
 			}
 			fmt.Fprintf(w, "%s\t%s\t%s\n", e.IP, strings.Join(e.Hostnames, ", "), source)
 		}
@@ -37,7 +37,7 @@ var hostsListCmd = &cobra.Command{
 
 var hostsAddCmd = &cobra.Command{
 	Use:   "add <ip> <hostname>",
-	Short: "Map a hostname to an IP inside the netcfg-managed hosts section",
+	Short: "Map a hostname to an IP inside the net-tool-managed hosts section",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if err := netconf.NewHosts().Add(args[0], args[1]); err != nil {
@@ -50,7 +50,7 @@ var hostsAddCmd = &cobra.Command{
 
 var hostsRemoveCmd = &cobra.Command{
 	Use:   "remove <hostname>",
-	Short: "Drop a hostname from the netcfg-managed hosts section",
+	Short: "Drop a hostname from the net-tool-managed hosts section",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if err := netconf.NewHosts().Remove(args[0]); err != nil {
@@ -66,7 +66,7 @@ var hostsCmd = &cobra.Command{
 	Short: "Inspect and manage hosts file entries",
 	Long: `Inspect and manage hosts file entries.
 
-netcfg only edits the marked section of the hosts file; every other line,
+net-tool only edits the marked section of the hosts file; every other line,
 including comments and foreign entries, is preserved as-is.`,
 }
 

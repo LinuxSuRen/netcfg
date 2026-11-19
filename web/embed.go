@@ -1,4 +1,4 @@
-// Package web embeds the built frontend (web/dist) so a single netcfg
+// Package web embeds the built frontend (web/dist) so a single net-tool
 // binary serves both the API and the management UI.
 package web
 

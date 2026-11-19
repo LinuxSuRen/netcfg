@@ -37,12 +37,12 @@ onMounted(async () => {
       <div class="app-header__inner">
         <a
           class="app-header__brand"
-          href="https://github.com/LinuxSuRen/netcfg"
+          href="https://github.com/LinuxSuRen/net-tool"
           target="_blank"
           rel="noopener"
         >
-          <img class="app-header__logo" src="/logo.svg" alt="netcfg logo" />
-          netcfg
+          <img class="app-header__logo" src="/logo.svg" alt="net-tool logo" />
+          net-tool
         </a>
         <span v-if="version" class="app-header__meta">
           版本 {{ version.version }} · {{ version.os }}/{{ version.arch }}<template v-if="shortCommit"> · {{ shortCommit }}</template>

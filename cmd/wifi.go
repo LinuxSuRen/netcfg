@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"github.com/LinuxSuRen/netcfg/internal/netconf"
+	"github.com/LinuxSuRen/net-tool/internal/netconf"
 )
 
 var wifiListCmd = &cobra.Command{
@@ -98,7 +98,7 @@ var wifiAPStartCmd = &cobra.Command{
 	Short: "Start a Wi-Fi hotspot (AP mode)",
 	Long: `Start a Wi-Fi hotspot (AP mode) sharing this machine's connectivity.
 
-Creates a NetworkManager connection (default name netcfg-ap) in AP mode
+Creates a NetworkManager connection (default name net-tool-ap) in AP mode
 with WPA2 when a password is given, or an open network without one.
 Clients get addresses from the built-in shared DHCP (default gateway
 10.42.0.1 on Linux).`,
@@ -127,7 +127,7 @@ Clients get addresses from the built-in shared DHCP (default gateway
 			reportDry(mgr)
 			return nil
 		}
-		fmt.Fprintf(cmd.OutOrStdout(), "hotspot %s started (stop with: netcfg wifi ap stop)\n", ssid)
+		fmt.Fprintf(cmd.OutOrStdout(), "hotspot %s started (stop with: net-tool wifi ap stop)\n", ssid)
 		return nil
 	},
 }
@@ -174,12 +174,12 @@ func init() {
 	sf.IntVar(&wifiAPChannel, "channel", 0, "channel (0 = auto)")
 	sf.StringVar(&wifiAPBand, "band", "bg", "frequency band: bg (2.4 GHz) or a (5 GHz)")
 	sf.StringVar(&wifiAPGateway, "gateway", "", "hotspot gateway IPv4 (default 10.42.0.1 on Linux)")
-	sf.StringVar(&wifiAPName, "name", "", "connection profile name (default netcfg-ap)")
+	sf.StringVar(&wifiAPName, "name", "", "connection profile name (default net-tool-ap)")
 	sf.BoolVar(&wifiAPDry, "dry-run", false, "print the system commands instead of running them")
 	wifiAPCmd.AddCommand(wifiAPStartCmd)
 
 	tf := wifiAPStopCmd.Flags()
-	tf.StringVar(&wifiAPName, "name", "", "connection profile name (default netcfg-ap)")
+	tf.StringVar(&wifiAPName, "name", "", "connection profile name (default net-tool-ap)")
 	tf.BoolVar(&wifiAPDry, "dry-run", false, "print the system commands instead of running them")
 	wifiAPCmd.AddCommand(wifiAPStopCmd)
 	wifiCmd.AddCommand(wifiAPCmd)

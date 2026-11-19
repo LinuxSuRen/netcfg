@@ -1,14 +1,17 @@
 version: 2
 
+# 显式声明，避免归档名依赖本地目录名（仓库改名后本地克隆目录可能仍是旧名）
+project_name: net-tool
+
 before:
   hooks:
     # dist/ is built by the release workflow before goreleaser runs
     - go mod tidy
 
 builds:
-  - id: netcfg
+  - id: net-tool
     main: .
-    binary: netcfg
+    binary: net-tool
     env: [CGO_ENABLED=0]
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
@@ -16,7 +19,7 @@ builds:
       - -s -w -X main.version={{.Version}} -X main.commit={{.FullCommit}}
 
 archives:
-  - id: netcfg
+  - id: net-tool
     formats: [tar.gz]
     name_template: >-
       {{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}
