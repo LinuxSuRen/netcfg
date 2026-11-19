@@ -1,4 +1,4 @@
-module github.com/LinuxSuRen/netcfg
+module github.com/LinuxSuRen/net-tool
 
 go 1.26.0
 

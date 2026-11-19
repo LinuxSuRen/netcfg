@@ -7,9 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/LinuxSuRen/netcfg/internal/api"
-	"github.com/LinuxSuRen/netcfg/internal/netconf"
-	"github.com/LinuxSuRen/netcfg/web"
+	"github.com/LinuxSuRen/net-tool/internal/api"
+	"github.com/LinuxSuRen/net-tool/internal/netconf"
+	"github.com/LinuxSuRen/net-tool/web"
 )
 
 var serveAddr string
@@ -22,7 +22,7 @@ var serveCmd = &cobra.Command{
 Listens on 127.0.0.1:8190 by default. The server never binds a public
 interface unless you pass --addr yourself; changing network configuration
 is a privileged operation, so keep it local (or tunnel it securely) and run
-netcfg with the privileges the operations need.`,
+net-tool with the privileges the operations need.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		api.Version, api.Commit = version, commit
 		srv := api.New(netconf.NewManager(), netconf.NewHosts(), web.Dist())
@@ -31,7 +31,7 @@ netcfg with the privileges the operations need.`,
 			return exitErr(cmd, err)
 		}
 		addr := listener.Addr().String()
-		fmt.Fprintf(cmd.OutOrStdout(), "netcfg web UI: http://%s\n", addr)
+		fmt.Fprintf(cmd.OutOrStdout(), "net-tool web UI: http://%s\n", addr)
 		if !isLoopbackAddr(addr) {
 			fmt.Fprintln(cmd.ErrOrStderr(), "warning: bound on a non-loopback address; anyone reachable can change this machine's network settings")
 		}

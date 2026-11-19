@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/LinuxSuRen/netcfg/internal/netconf"
+	"github.com/LinuxSuRen/net-tool/internal/netconf"
 )
 
 var (
@@ -132,7 +132,7 @@ var proxyCmd = &cobra.Command{
 	Short: "Read and set the system proxy",
 	Long: `Read and set the system proxy.
 
-On macOS the proxy belongs to a network service (see "netcfg list"); pass
+On macOS the proxy belongs to a network service (see "net-tool list"); pass
 --iface to pick one, otherwise the Wi-Fi service is used. On Windows and
 Linux the setting is machine/session-wide.`,
 }

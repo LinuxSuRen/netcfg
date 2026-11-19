@@ -1,4 +1,4 @@
-// location-auth.m — one-shot Location authorization helper for netcfg on
+// location-auth.m — one-shot Location authorization helper for net-tool on
 // macOS 13+.
 //
 // macOS treats Wi-Fi SSIDs as location information and redacts them from
@@ -7,14 +7,14 @@
 // > Privacy & Security > Location Services on its own because it never asks;
 // this helper asks exactly once on its behalf.
 //
-// Build and run it from the SAME terminal app you later run netcfg in:
+// Build and run it from the SAME terminal app you later run net-tool in:
 //
 //   clang -framework Foundation -framework CoreLocation \
 //       scripts/location-auth.m -o /tmp/location-auth
 //   /tmp/location-auth
 //
 // Answer "Allow" (允许) in the system prompt. The terminal app then shows up
-// in Location Services and `sudo netcfg serve` can list Wi-Fi networks. The
+// in Location Services and `sudo net-tool serve` can list Wi-Fi networks. The
 // binary is not needed afterwards.
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
@@ -26,7 +26,7 @@
 - (void)locationManagerDidChangeAuthorization:(CLLocationManager *)manager {
     switch (manager.authorizationStatus) {
         case kCLAuthorizationStatusAuthorized:
-            fprintf(stdout, "location access granted; SSIDs should now be visible to netcfg\n");
+            fprintf(stdout, "location access granted; SSIDs should now be visible to net-tool\n");
             exit(0);
         case kCLAuthorizationStatusDenied:
         case kCLAuthorizationStatusRestricted:

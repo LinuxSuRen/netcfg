@@ -12,8 +12,8 @@ import (
 // rename so a crash never leaves a half-written file behind.
 
 const (
-	hostsBeginMarker = "# BEGIN netcfg"
-	hostsEndMarker   = "# END netcfg"
+	hostsBeginMarker = "# BEGIN net-tool"
+	hostsEndMarker   = "# END net-tool"
 )
 
 type fileHosts struct {
@@ -102,7 +102,7 @@ func (h *fileHosts) Remove(hostname string) error {
 	}
 	begin, end := managedRange(lines)
 	if begin < 0 {
-		return newError(CodeNotFound, "%q is not managed by netcfg", hostname)
+		return newError(CodeNotFound, "%q is not managed by net-tool", hostname)
 	}
 	found := false
 	kept := lines[:begin+1]
@@ -119,7 +119,7 @@ func (h *fileHosts) Remove(hostname string) error {
 		}
 	}
 	if !found {
-		return newError(CodeNotFound, "%q is not managed by netcfg", hostname)
+		return newError(CodeNotFound, "%q is not managed by net-tool", hostname)
 	}
 	kept = append(kept, lines[end:]...)
 	return h.writelines(kept)
@@ -162,7 +162,7 @@ func (h *fileHosts) writelines(lines []string) error {
 	if info, err := os.Stat(h.path); err == nil {
 		mode = info.Mode().Perm()
 	}
-	tmp, err := os.CreateTemp(dir, ".netcfg-hosts-*")
+	tmp, err := os.CreateTemp(dir, ".net-tool-hosts-*")
 	if err != nil {
 		return newError(CodeCommandFailed, "create temp file: %v", err)
 	}

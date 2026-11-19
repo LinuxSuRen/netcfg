@@ -102,7 +102,7 @@ onMounted(load)
     <div class="block__header">
       <div>
         <h2 class="block__title">域名解析</h2>
-        <p class="block__desc">维护本机 hosts 记录，netcfg 管理的条目可在此删除</p>
+        <p class="block__desc">维护本机 hosts 记录，net-tool 管理的条目可在此删除</p>
       </div>
       <div class="block__actions">
         <el-button :icon="Refresh" :loading="loading" @click="load">刷新</el-button>
@@ -124,7 +124,7 @@ onMounted(load)
       <el-table-column label="来源" width="120">
         <template #default="{ row }">
           <el-tag :type="row.managed ? 'success' : 'info'" size="small">
-            {{ row.managed ? 'netcfg 管理' : '系统' }}
+            {{ row.managed ? 'net-tool 管理' : '系统' }}
           </el-tag>
         </template>
       </el-table-column>

@@ -1,4 +1,4 @@
-// netcfg 管理台 HTTP 封装：统一处理 envelope、超时与友好错误提示。
+// net-tool 管理台 HTTP 封装：统一处理 envelope、超时与友好错误提示。
 // 后端返回稳定错误码，前端映射中文文案，不向用户透传底层技术错误。
 const TIMEOUT_MS = 15000
 

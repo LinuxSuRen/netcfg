@@ -12,7 +12,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/LinuxSuRen/netcfg/internal/netconf"
+	"github.com/LinuxSuRen/net-tool/internal/netconf"
 )
 
 // Version metadata, wired from -ldflags at release time.

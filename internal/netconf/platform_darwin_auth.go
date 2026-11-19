@@ -12,7 +12,7 @@ import (
 
 // location_auth.m.txt asks for Location authorization once on behalf of the
 // terminal app; macOS records Wi-Fi SSID visibility per responsible process,
-// so the grant lands on the terminal even though netcfg triggers it.
+// so the grant lands on the terminal even though net-tool triggers it.
 //
 //go:embed location_auth.m.txt
 var locationAuthSource string
@@ -40,7 +40,7 @@ func launchLocationAuthHelper() bool {
 	if err != nil {
 		return false
 	}
-	dir, err := os.MkdirTemp("", "netcfg-location-")
+	dir, err := os.MkdirTemp("", "net-tool-location-")
 	if err != nil {
 		return false
 	}

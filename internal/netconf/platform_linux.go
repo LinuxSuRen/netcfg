@@ -289,12 +289,12 @@ func (m *linuxManager) ConnectWifi(iface, ssid, password string) error {
 	return err
 }
 
-// apConnectionName is the NetworkManager connection netcfg owns for hotspots.
+// apConnectionName is the NetworkManager connection net-tool owns for hotspots.
 func apConnectionName(opts WifiAPOptions) string {
 	if opts.ConnName != "" {
 		return opts.ConnName
 	}
-	return "netcfg-ap"
+	return "net-tool-ap"
 }
 
 // defaultWifiDevice picks the first wifi interface for hotspot bring-up.
@@ -308,7 +308,7 @@ func (m *linuxManager) defaultWifiDevice() (string, error) {
 			return iface.Name, nil
 		}
 	}
-	return "", newError(CodeNotFound, "no Wi-Fi interface found; plug in an adapter and check `netcfg list`")
+	return "", newError(CodeNotFound, "no Wi-Fi interface found; plug in an adapter and check `net-tool list`")
 }
 
 func (m *linuxManager) StartWifiAP(iface, ssid, password string, opts WifiAPOptions) error {
@@ -379,7 +379,7 @@ func (m *linuxManager) StopWifiAP(opts WifiAPOptions) error {
 	}
 	conn := apConnectionName(opts)
 	if !m.connectionExists(conn) {
-		return newError(CodeNotFound, "no hotspot connection %q (was it started with netcfg?)", conn)
+		return newError(CodeNotFound, "no hotspot connection %q (was it started with net-tool?)", conn)
 	}
 	if _, err := m.mutate.Run("nmcli", "connection", "down", conn); err != nil {
 		return err

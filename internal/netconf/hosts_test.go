@@ -33,14 +33,14 @@ func TestHostsAddCreatesManagedSection(t *testing.T) {
 		t.Fatal(err)
 	}
 	got := readBack(t, path)
-	want := "127.0.0.1 localhost\n# custom comment\n\n# BEGIN netcfg\n10.1.2.3 mydevice.local\n# END netcfg\n"
+	want := "127.0.0.1 localhost\n# custom comment\n\n# BEGIN net-tool\n10.1.2.3 mydevice.local\n# END net-tool\n"
 	if got != want {
 		t.Errorf("got:\n%q\nwant:\n%q", got, want)
 	}
 }
 
 func TestHostsAddUpdatesExisting(t *testing.T) {
-	path := writeTempHosts(t, "# BEGIN netcfg\n10.0.0.1 old.local\n# END netcfg\n10.9.9.9 untouched\n")
+	path := writeTempHosts(t, "# BEGIN net-tool\n10.0.0.1 old.local\n# END net-tool\n10.9.9.9 untouched\n")
 	h := NewHostsAt(path)
 	if err := h.Add("10.0.0.2", "old.local"); err != nil {
 		t.Fatal(err)
@@ -49,20 +49,20 @@ func TestHostsAddUpdatesExisting(t *testing.T) {
 		t.Fatal(err)
 	}
 	got := readBack(t, path)
-	want := "# BEGIN netcfg\n10.0.0.2 old.local\n10.0.0.3 new.local\n# END netcfg\n10.9.9.9 untouched\n"
+	want := "# BEGIN net-tool\n10.0.0.2 old.local\n10.0.0.3 new.local\n# END net-tool\n10.9.9.9 untouched\n"
 	if got != want {
 		t.Errorf("got:\n%q\nwant:\n%q", got, want)
 	}
 }
 
 func TestHostsRemoveOnlyManaged(t *testing.T) {
-	path := writeTempHosts(t, "# BEGIN netcfg\n10.0.0.1 a.local b.local\n# END netcfg\n10.9.9.9 a.local\n")
+	path := writeTempHosts(t, "# BEGIN net-tool\n10.0.0.1 a.local b.local\n# END net-tool\n10.9.9.9 a.local\n")
 	h := NewHostsAt(path)
 	if err := h.Remove("a.local"); err != nil {
 		t.Fatal(err)
 	}
 	got := readBack(t, path)
-	want := "# BEGIN netcfg\n10.0.0.1 b.local\n# END netcfg\n10.9.9.9 a.local\n"
+	want := "# BEGIN net-tool\n10.0.0.1 b.local\n# END net-tool\n10.9.9.9 a.local\n"
 	if got != want {
 		t.Errorf("got:\n%q\nwant:\n%q", got, want)
 	}
@@ -70,7 +70,7 @@ func TestHostsRemoveOnlyManaged(t *testing.T) {
 	if err := h.Remove("b.local"); err != nil {
 		t.Fatal(err)
 	}
-	want2 := "# BEGIN netcfg\n# END netcfg\n10.9.9.9 a.local\n"
+	want2 := "# BEGIN net-tool\n# END net-tool\n10.9.9.9 a.local\n"
 	if got := readBack(t, path); got != want2 {
 		t.Errorf("got:\n%q\nwant:\n%q", got, want2)
 	}
@@ -80,7 +80,7 @@ func TestHostsRemoveOnlyManaged(t *testing.T) {
 }
 
 func TestHostsEntries(t *testing.T) {
-	path := writeTempHosts(t, "127.0.0.1 localhost\n# BEGIN netcfg\n10.0.0.1 mine.local\n# END netcfg\n10.9.9.9 other.local\n")
+	path := writeTempHosts(t, "127.0.0.1 localhost\n# BEGIN net-tool\n10.0.0.1 mine.local\n# END net-tool\n10.9.9.9 other.local\n")
 	entries, err := NewHostsAt(path).Entries()
 	if err != nil {
 		t.Fatal(err)
@@ -121,7 +121,7 @@ func TestHostsAddToMissingFile(t *testing.T) {
 	if err := NewHostsAt(path).Add("10.0.0.1", "x.local"); err != nil {
 		t.Fatal(err)
 	}
-	want := "# BEGIN netcfg\n10.0.0.1 x.local\n# END netcfg\n"
+	want := "# BEGIN net-tool\n10.0.0.1 x.local\n# END net-tool\n"
 	if got := readBack(t, path); got != want {
 		t.Errorf("got %q want %q", got, want)
 	}

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/LinuxSuRen/netcfg/internal/netconf"
+	"github.com/LinuxSuRen/net-tool/internal/netconf"
 )
 
 // fakeManager implements netconf.Manager for endpoint tests.
@@ -93,7 +93,7 @@ func newTestServer(t *testing.T) (*Server, *fakeManager, string) {
 		{Name: "Ethernet", Type: "ethernet"},
 	}}
 	hostsPath := filepath.Join(t.TempDir(), "hosts")
-	if err := os.WriteFile(hostsPath, []byte("# BEGIN netcfg\n10.0.0.1 mine.local\n# END netcfg\n"), 0o644); err != nil {
+	if err := os.WriteFile(hostsPath, []byte("# BEGIN net-tool\n10.0.0.1 mine.local\n# END net-tool\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	srv := New(mgr, netconf.NewHostsAt(hostsPath), nil)

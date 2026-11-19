@@ -9,7 +9,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/LinuxSuRen/netcfg/internal/netconf"
+	"github.com/LinuxSuRen/net-tool/internal/netconf"
 )
 
 // statusByCode maps stable error codes to HTTP statuses.
@@ -67,7 +67,7 @@ func spaHandler(webFS fs.FS) http.Handler {
 			if name == "index.html" {
 				w.Header().Set("Content-Type", "text/html; charset=utf-8")
 				w.WriteHeader(http.StatusNotFound)
-				_, _ = io.WriteString(w, "<h1>netcfg</h1><p>web UI not built; run <code>make build-web</code> or use the release binary.</p>")
+				_, _ = io.WriteString(w, "<h1>net-tool</h1><p>web UI not built; run <code>make build-web</code> or use the release binary.</p>")
 				return
 			}
 			// SPA fallback for client-side routes.

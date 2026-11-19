@@ -24,7 +24,7 @@ func (f *fakeRunner) Run(name string, args ...string) (string, error) {
 const deviceShowOut = `GENERAL.DEVICE:wlan0
 GENERAL.TYPE:wifi
 GENERAL.STATE:100 (connected)
-GENERAL.CONNECTION:netcfg-ap
+GENERAL.CONNECTION:net-tool-ap
 `
 
 func newAPManager(connectionList string) (*linuxManager, *DryRunner) {
@@ -45,11 +45,11 @@ func TestStartWifiAPCommands(t *testing.T) {
 		t.Fatalf("start: %v", err)
 	}
 	want := []string{
-		"nmcli connection add type wifi ifname wlan0 con-name netcfg-ap ssid test-ap " +
+		"nmcli connection add type wifi ifname wlan0 con-name net-tool-ap ssid test-ap " +
 			"802-11-wireless.mode ap 802-11-wireless.band bg 802-11-wireless.channel 6 " +
 			"802-11-wireless-security.key-mgmt wpa-psk wifi-sec.psk secret123 " +
 			"ipv4.method shared ipv4.addresses 192.168.42.1/24",
-		"nmcli connection up netcfg-ap",
+		"nmcli connection up net-tool-ap",
 	}
 	if len(dry.Commands) != len(want) {
 		t.Fatalf("commands = %v", dry.Commands)
@@ -62,11 +62,11 @@ func TestStartWifiAPCommands(t *testing.T) {
 }
 
 func TestStartWifiAPReplacesLeftover(t *testing.T) {
-	mgr, dry := newAPManager("netcfg-ap")
+	mgr, dry := newAPManager("net-tool-ap")
 	if err := mgr.StartWifiAP("", "open-ap", "", WifiAPOptions{}); err != nil {
 		t.Fatalf("start: %v", err)
 	}
-	if dry.Commands[0] != "nmcli connection delete netcfg-ap" {
+	if dry.Commands[0] != "nmcli connection delete net-tool-ap" {
 		t.Errorf("leftover cleanup missing: %v", dry.Commands)
 	}
 	add := dry.Commands[1]
@@ -91,11 +91,11 @@ func TestStartWifiAP5GHz(t *testing.T) {
 }
 
 func TestStopWifiAPCommands(t *testing.T) {
-	mgr, dry := newAPManager("netcfg-ap")
+	mgr, dry := newAPManager("net-tool-ap")
 	if err := mgr.StopWifiAP(WifiAPOptions{}); err != nil {
 		t.Fatalf("stop: %v", err)
 	}
-	want := []string{"nmcli connection down netcfg-ap", "nmcli connection delete netcfg-ap"}
+	want := []string{"nmcli connection down net-tool-ap", "nmcli connection delete net-tool-ap"}
 	for i := range want {
 		if dry.Commands[i] != want[i] {
 			t.Errorf("cmd[%d] = %s want %s", i, dry.Commands[i], want[i])

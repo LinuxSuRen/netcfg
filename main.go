@@ -1,9 +1,9 @@
-// netcfg views and changes the local machine's network configuration on
+// net-tool views and changes the local machine's network configuration on
 // macOS, Windows and Linux, from the terminal or a small embedded web UI.
 package main
 
 import (
-	"github.com/LinuxSuRen/netcfg/cmd"
+	"github.com/LinuxSuRen/net-tool/cmd"
 )
 
 // set at release time via -ldflags

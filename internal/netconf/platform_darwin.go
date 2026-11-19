@@ -213,7 +213,7 @@ func (m *darwinManager) ScanWifi() ([]WifiNetwork, error) {
 	}
 	if redacted > 0 {
 		// SSIDs are visible but Location Services hides them from this
-		// process. netcfg itself triggers the authorization prompt (the
+		// process. net-tool itself triggers the authorization prompt (the
 		// grant is recorded against the terminal app by macOS); once the
 		// user allows it, a re-scan lists everything.
 		if m.triggerLocationAuth() {
@@ -224,7 +224,7 @@ func (m *darwinManager) ScanWifi() ([]WifiNetwork, error) {
 			"Wi-Fi SSIDs are redacted by Location Services; grant the terminal app Location access in System Settings > Privacy & Security > Location Services and try again")
 	}
 	return nil, newError(CodePermissionDenied,
-		"no Wi-Fi networks could be listed; scanning needs administrator privileges and terminal Location access, restart netcfg with sudo and try again")
+		"no Wi-Fi networks could be listed; scanning needs administrator privileges and terminal Location access, restart net-tool with sudo and try again")
 }
 
 // triggerLocationAuth runs the injectable test hook or the real helper.
