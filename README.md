@@ -43,8 +43,8 @@ Linux without NetworkManager degrades to a read-only view; mutating commands rep
 Prebuilt binaries for Linux, macOS and Windows (amd64 / arm64) are attached to [GitHub Releases](https://github.com/LinuxSuRen/net-tool/releases):
 
 ```bash
-curl -fsSL https://github.com/LinuxSuRen/net-tool/releases/download/v0.1.0/net-tool-v0.1.0-linux-amd64.tar.gz | tar xz
-./net-tool-v0.1.0-linux-amd64/net-tool list
+curl -fsSL https://github.com/LinuxSuRen/net-tool/releases/download/v0.2.0/net-tool-0.2.0-linux-amd64.tar.gz | tar xz
+./net-tool list
 ```
 
 With a Go toolchain (the web UI is embedded in releases; building from source needs Node for the frontend, see Development):
